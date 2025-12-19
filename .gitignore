@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Data & Models
+data/
+checkpoints/*.pth
+onnx/*.onnx
+
+# Results
+results/*.csv
+results/*.png
+
+# OS
+.DS_Store
+Thumbs.db
