@@ -9,6 +9,10 @@ data/
 checkpoints/*.pth
 onnx/*.onnx
 
+# IMDB Dataset
+aclImdb/
+ACLImdb/
+
 # Results
 results/*.csv
 results/*.png
