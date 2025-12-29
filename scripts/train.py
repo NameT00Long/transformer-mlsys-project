@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from collections import Counter
 import re
 import random
-from model import TransformerClassifier  # ✅ 导入你的模型
+from model.transformer_classifier import TransformerClassifier
 
 # ==============================
 # 1. 预处理 & 分词
