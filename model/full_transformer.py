@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import math
-from encoder import Encoder  # 假设您有encoder.py
-from decoder import Decoder
+from .encoder import Encoder
+from .decoder import Decoder
 
 class Transformer(nn.Module):
     def __init__(self, src_vocab_size, tgt_vocab_size, d_model=512, num_heads=8, 

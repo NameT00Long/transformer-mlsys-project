@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import math
-from layers import PositionalEncoding, MultiHeadAttention
+from .layers import PositionalEncoding, MultiHeadAttention
 
 class FeedForward(nn.Module):
     def __init__(self, d_model, d_ff, dropout=0.1):

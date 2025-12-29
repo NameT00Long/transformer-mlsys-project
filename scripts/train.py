@@ -1,6 +1,5 @@
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -9,21 +8,21 @@ import re
 import random
 from model.transformer_classifier import TransformerClassifier
 
-# ==============================
-# 1. 预处理 & 分词
-# ==============================
+
 def preprocess_text(text):
+    """文本预处理函数"""
     text = text.lower()
     text = re.sub(r'[^a-z\s]', ' ', text)
     return text.strip()
 
+
 def basic_tokenize(text):
+    """基础分词函数"""
     return text.split()
 
-# ==============================
-# 2. 从本地目录加载 IMDb
-# ==============================
+
 def load_imdb_from_local(data_dir="aclImdb"):
+    """从本地目录加载IMDb数据"""
     def read_split(split):
         data = []
         for label_name, label in [("pos", 1), ("neg", 0)]:
@@ -43,10 +42,9 @@ def load_imdb_from_local(data_dir="aclImdb"):
     print(f"✅ 训练样本数: {len(train_data)}, 测试样本数: {len(test_data)}")
     return train_data, test_data
 
-# ==============================
-# 3. 构建词汇表
-# ==============================
+
 def build_vocab(train_data, min_freq=5, max_tokens=10000):
+    """构建词汇表"""
     counter = Counter()
     for text, _ in train_data:
         tokens = basic_tokenize(preprocess_text(text))
@@ -59,10 +57,9 @@ def build_vocab(train_data, min_freq=5, max_tokens=10000):
             vocab[word] = len(vocab)
     return vocab
 
-# ==============================
-# 4. Collate 函数
-# ==============================
+
 def collate_batch(batch, vocab, max_seq_len=256):
+    """批处理函数"""
     texts, labels = zip(*batch)
     labels = torch.tensor(labels, dtype=torch.long)
     
@@ -79,10 +76,9 @@ def collate_batch(batch, vocab, max_seq_len=256):
     input_ids = torch.tensor(sequences, dtype=torch.long)
     return input_ids, labels
 
-# ==============================
-# 5. 主加载函数
-# ==============================
+
 def load_imdb_data(batch_size=32, max_seq_len=256, max_tokens=10000, data_dir="aclImdb"):
+    """主数据加载函数"""
     train_data, test_data = load_imdb_from_local(data_dir)
     vocab = build_vocab(train_data, min_freq=5, max_tokens=max_tokens)
     
@@ -94,10 +90,9 @@ def load_imdb_data(batch_size=32, max_seq_len=256, max_tokens=10000, data_dir="a
     
     return train_loader, test_loader, vocab
 
-# ==============================
-# 6. 训练一个 epoch
-# ==============================
+
 def train_epoch(model, dataloader, optimizer, criterion, device):
+    """训练一个epoch"""
     model.train()
     total_loss = 0
     correct = 0
@@ -124,10 +119,9 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
     avg_loss = total_loss / len(dataloader)
     return avg_loss, acc
 
-# ==============================
-# 7. 验证一个 epoch
-# ==============================
+
 def evaluate(model, dataloader, criterion, device):
+    """评估模型"""
     model.eval()
     total_loss = 0
     correct = 0
@@ -148,30 +142,23 @@ def evaluate(model, dataloader, criterion, device):
     avg_loss = total_loss / len(dataloader)
     return avg_loss, acc
 
-# ==============================
-# 8. 主训练函数
-# ==============================
-def main():
+
+def train_model(params):
+    """训练模型主函数"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"🖥️  使用设备: {device}")
 
-    if not os.path.exists("aclImdb"):
-        print("❌ 错误: 未找到 aclImdb 目录！")
+    if not os.path.exists(params['data_dir']):
+        print(f"❌ 错误: 未找到 {params['data_dir']} 目录！")
         exit(1)
-
-    # 超参数
-    batch_size = 32
-    max_seq_len = 256
-    max_tokens = 10000
-    epochs = 5
-    lr = 1e-4
 
     # 加载数据
     print("📥 加载数据...")
     train_loader, test_loader, vocab = load_imdb_data(
-        batch_size=batch_size,
-        max_seq_len=max_seq_len,
-        max_tokens=max_tokens
+        batch_size=params['batch_size'],
+        max_seq_len=params['max_seq_len'],
+        max_tokens=params['max_tokens'],
+        data_dir=params['data_dir']
     )
     vocab_size = len(vocab)
     print(f"🔤 词汇表大小: {vocab_size}")
@@ -179,23 +166,23 @@ def main():
     # 初始化模型
     model = TransformerClassifier(
         vocab_size=vocab_size,
-        d_model=256,
-        nhead=4,
-        num_layers=4,
-        num_classes=2,
-        dropout=0.1
+        d_model=params['d_model'],
+        num_heads=params['num_heads'],
+        num_layers=params['num_layers'],
+        num_classes=params['num_classes'],
+        dropout=params['dropout']
     ).to(device)
 
     print(f"📊 模型参数量: {sum(p.numel() for p in model.parameters()):,}")
 
     # 优化器 & 损失函数
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'])
     criterion = nn.CrossEntropyLoss()
 
     # 训练循环
     best_acc = 0.0
-    for epoch in range(1, epochs + 1):
-        print(f"\n🚀 Epoch {epoch}/{epochs}")
+    for epoch in range(1, params['epochs'] + 1):
+        print(f"\n🚀 Epoch {epoch}/{params['epochs']}")
         print("-" * 30)
 
         # 训练
@@ -209,13 +196,8 @@ def main():
         # 保存最佳模型
         if val_acc > best_acc:
             best_acc = val_acc
-            torch.save(model.state_dict(), "best_model.pth")
+            torch.save(model.state_dict(), params['model_save_path'])
             print(f"✨ 模型已保存 (Val Acc: {val_acc:.2f}%)")
 
     print(f"\n✅ 训练完成！最佳验证准确率: {best_acc:.2f}%")
-
-# ==============================
-# 9. 入口
-# ==============================
-if __name__ == "__main__":
-    main()
+    return best_acc
