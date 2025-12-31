@@ -22,9 +22,10 @@ class Transformer(nn.Module):
         mask = mask.masked_fill(mask == 1, float('-inf'))
         return mask
 
-    def forward(self, src, tgt):
-        # 生成目标序列掩码
-        tgt_mask = self.generate_square_subsequent_mask(tgt.size(1)).to(tgt.device)
+    def forward(self, src, tgt, tgt_mask=None):
+        # 如果没有提供目标掩码，生成一个
+        if tgt_mask is None:
+            tgt_mask = self.generate_square_subsequent_mask(tgt.size(1)).to(tgt.device)
         
         # 编码器前向传播
         memory = self.encoder(src)
