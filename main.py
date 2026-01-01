@@ -7,7 +7,7 @@ from train_translation import train_translation_model
 def get_translation_params():
     """返回翻译任务的默认参数"""
     return {
-        'batch_size': 16,  # 减小批次大小以适应更多数据
+        'batch_size': 64,  # 减小批次大小以适应更多数据
         'max_seq_len': 50,  # 适应Multi30k数据的平均长度
         'max_tokens': 8000,  # 增加词汇表大小
         'epochs': 10,

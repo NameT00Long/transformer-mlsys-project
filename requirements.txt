@@ -69,3 +69,9 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.3
 uvicorn==0.38.0
+torch>=1.7.0
+torchvision>=0.8.0
+numpy>=1.18.0
+matplotlib>=3.3.0
+sacrebleu>=2.0.0
+nltk>=3.6
