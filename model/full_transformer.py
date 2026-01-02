@@ -17,9 +17,15 @@ class Transformer(nn.Module):
         self.output_projection = nn.Linear(d_model, tgt_vocab_size)
         
     def generate_square_subsequent_mask(self, sz):
-        """生成下三角掩码，防止解码器看到未来信息"""
-        mask = torch.triu(torch.ones(sz, sz), diagonal=1)
-        mask = mask.masked_fill(mask == 1, float('-inf'))
+        """
+        生成下三角掩码
+        配合 layers.py 的逻辑：mask==0 的位置会被屏蔽。
+        因此我们需要：
+        - 下三角（历史信息/可见）= 1
+        - 上三角（未来信息/不可见）= 0
+        """
+        # torch.tril 生成下三角矩阵（对角线及以下为1，其余为0）
+        mask = torch.tril(torch.ones(sz, sz))
         return mask
 
     def forward(self, src, tgt, tgt_mask=None):

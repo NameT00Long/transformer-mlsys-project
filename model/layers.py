@@ -17,7 +17,7 @@ class PositionalEncoding(nn.Module):
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
 
         # 计算分母
-        div_term = torch.exp(torch.arange(0, d_model, 2).float()*(-math.log(1000.0)/d_model))
+        div_term = torch.exp(torch.arange(0, d_model, 2).float()*(-math.log(10000.0)/d_model))
 
         # 偶数维度->sin, 奇数维度->cos
         pe[:, 0::2] = torch.sin(position * div_term)
