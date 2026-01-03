@@ -1,6 +1,7 @@
 """
 翻译推理模块 - 已修复
 """
+import re
 import os
 import sys
 import pickle
@@ -133,10 +134,11 @@ def translate(text, model, token2idx_src, token2idx_tgt, idx2token_tgt):
     # print(f"\n[DEBUG] Src SOS={SRC_SOS_IDX}, Tgt SOS={TGT_SOS_IDX}, EOS={TGT_EOS_IDX}")
     
     # 2. 分词与映射
-    import re
     # 简单分词：把标点隔开
-    text = re.sub(r"([?.!,])", r" \1 ", text)
-    tokens = text.lower().split()
+    text = text.lower().strip()
+    text = re.sub(r"([?.!,¿])", r" \1 ", text)
+    text = re.sub(r'[" "]+', " ", text)
+    tokens = text.split()
     
     # 3. 构建源语言序列 [SOS, ... tokens ..., EOS]
     src_indices = [SRC_SOS_IDX]  # <--- 【关键修复】添加 SOS 到开头

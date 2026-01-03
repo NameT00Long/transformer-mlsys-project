@@ -7,19 +7,25 @@ from train_translation import train_translation_model
 def get_translation_params():
     """返回翻译任务的默认参数"""
     return {
-        'batch_size': 64,  # 减小批次大小以适应更多数据
-        'max_seq_len': 50,  # 适应Multi30k数据的平均长度
-        'max_tokens': 8000,  # 增加词汇表大小
-        'epochs': 10,
-        'lr': 5e-4,  # 稍微增加学习率
-        'd_model': 256,  # 减小模型大小以便快速训练测试
-        'num_heads': 8,
-        'num_layers': 3,  # 减少层数以便快速训练测试
-        'dropout': 0.1,
-        'data_dir': 'data/multi30k',
-        'model_save_path': 'translation_model.pth',
+        'data_dir': 'data/opus_books', # 数据集缓存路径
         'src_lang': 'en',
-        'tgt_lang': 'de'
+        'tgt_lang': 'de',
+        
+        # --- 核心模型参数 (标准 Transformer) ---
+        'd_model': 512,        # 从 256 改回 512，4060 毫无压力
+        'num_heads': 8,        # 512 / 8 = 64 (标准头大小)
+        'num_layers': 6,       # 深度增加到 6 层，提升翻译质量
+        'dropout': 0.1,        # 防止过拟合
+        
+        # --- 训练参数 ---
+        'batch_size': 64,      # 8GB 显存对于 max_len=100 可以轻松跑 64 甚至 128
+                               # 如果显存不够，改回 32
+        'max_seq_len': 100,    # 短句翻译不需要 512，设为 100 节省大量显存
+        'lr': 0.0001,          # 稍微调低一点学习率，训练更稳定
+        'epochs': 20,          # IWSLT 数据多了，建议跑 20 轮 (约1-2小时)
+        
+        # --- 路径 ---
+        'model_save_path': 'translation_model.pth'
     }
 
 
